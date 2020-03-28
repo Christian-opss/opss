@@ -1,11 +1,5 @@
 hostname=api.m.jd.com,trade-acs.m.taobao.com,api.weibo.cn,mapi.weibo.com,*.uve.weibo.com,ios.prod.ftl.netflix.com
 
-https?://api\.m\.jd\.com/client\.action\?functionId=(wareBusiness|serverConfig) url script-response-body eval_script.js
-
-http://amdc\.m\.taobao\.com/amdc/mobileDispatch url script-response-body eval_script.js
-
-https?://trade-acs\.m\.taobao\.com/gw/mtop\.taobao\.detail\.getdetail url script-response-body eval_script.js
-
 ^https?://api\.m\.jd\.com/client\.action\?functionId=(wareBusiness|serverConfig) url script-response-body eval_script.js
 
 ^http://amdc\.m\.taobao\.com/amdc/mobileDispatch url script-response-body eval_script.js
