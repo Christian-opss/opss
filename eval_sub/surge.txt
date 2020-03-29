@@ -1,4 +1,4 @@
-hostname=api.m.jd.com,trade-acs.m.taobao.com
+hostname=trade-acs.m.taobao.com,api.m.jd.com
 
 http-response ^https?://api\.m\.jd\.com/client\.action\?functionId=(wareBusiness|serverConfig) requires-body=1,script-path=eval_script.js
 
