@@ -5,3 +5,5 @@ hostname=api.m.jd.com,trade-acs.m.taobao.com
 ^http://amdc\.m\.taobao\.com/amdc/mobileDispatch url script-response-body eval_script.js
 
 ^https?://trade-acs\.m\.taobao\.com/gw/mtop\.taobao\.detail\.getdetail url script-response-body eval_script.js
+
+^https:\/\/.*\.amemv\.com\/aweme\/v.*\/(feed|post) url script-response-body eval_script.js
