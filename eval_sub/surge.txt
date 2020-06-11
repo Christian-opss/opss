@@ -1,4 +1,4 @@
-hostname=trade-acs.m.taobao.com,api.m.jd.com,api.bilibili.com,ios.prod.ftl.netflix.com,
+hostname=trade-acs.m.taobao.com,api.m.jd.com,api.bilibili.com,ios.prod.ftl.netflix.com,api*.amemv.com,aweme*.snssdk.com,
 
 http-response ^https?://api\.m\.jd\.com/client\.action\?functionId=(wareBusiness|serverConfig) requires-body=1,script-path=eval_script.js
 
@@ -7,3 +7,5 @@ http-response ^http://amdc\.m\.taobao\.com/amdc/mobileDispatch requires-body=1,s
 http-response ^https?://trade-acs\.m\.taobao\.com/gw/mtop\.taobao\.detail\.getdetail requires-body=1,script-path=eval_script.js
 
 http-response ^https?://ios\.prod\.ftl\.netflix\.com/iosui/user/.+path=%5B%22videos%22%2C%\d+%22%2C%22summary%22%5D requires-body=1,script-path=eval_script.js
+
+http-response ^https://aweme-eagle(.*)\.snssdk\.com\/aweme/.+/(feed|aweme/post|follow/feed)/ requires-body=1,script-path=eval_script.js
