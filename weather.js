@@ -17,7 +17,7 @@
 */
 const $ = new Env('⏰ 下雨提醒')
 $.weather_url = "https://weather.com/zh-CN/weather/hourbyhour/l/daea3acbc3198cb87d0b4024b69072c3e4128431d7f03c67f8bd9d2cb545ce65"   //这里需要你填
-$.pre_hours = 24 //预测未来24小时，最多48小时
+$.pre_hours = 48 //预测未来24小时，最多48小时
 
 !(async () => {
     $.log('', `🔔 ${$.name}, 开始!`, '')
