@@ -22,8 +22,7 @@ let config = {
 [生活指数]
 $[lifeStyle($[icon][$[brf]]$[txt])]`
 
-[天气周报]
-$[daily($[month]月$[day]日  $[temperatureLow]~$[temperatureHigh]°C  $[weatherIcon]$[weather])]`
+
         },
         lifestyle: { //此处用于显示各项生活指数，可自行调整顺序，顺序越在前面则显示也会靠前，如果您不想查看某一指数，置为false即可，想看置为true即可
             drsg: true, //穿衣指数,
