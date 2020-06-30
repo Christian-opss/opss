@@ -20,7 +20,10 @@ let config = {
 🌡体感温度 $[apparentTemperatureMin] ~ $[apparentTemperatureMax]°C 💨气压$[atmosphere]pa
 
 [生活指数]
-$[lifeStyle($[icon][$[brf]]$[txt])]`
+$[lifeStyle($[icon][$[brf]]$[txt])]
+
+[天气周报]
+$[daily($[month]月$[day]日  $[temperatureLow]~$[temperatureHigh]°C  $[weatherIcon]$[weather])]`
 
 
         },
