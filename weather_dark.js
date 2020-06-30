@@ -1,145 +1,4 @@
 /*
-    本作品用于QuantumultX和Surge之间js执行方法的转换
-    您只需书写其中任一软件的js,然后在您的js最【前面】追加上此段js即可
-    无需担心影响执行问题,具体原理是将QX和Surge的方法转换为互相可调用的方法
-    尚未测试是否支持import的方式进行使用,因此暂未export
-    如有问题或您有更好的改进方案,请前往 https://github.com/sazs34/TaskConfig/issues 提交内容,或直接进行pull request
-    您也可直接在tg中联系@wechatu
-*/
-// #region 固定头部
-let isQuantumultX = $task != undefined; //判断当前运行环境是否是qx
-let isSurge = $httpClient != undefined; //判断当前运行环境是否是surge
-// http请求
-var $task = isQuantumultX ? $task : {};
-var $httpClient = isSurge ? $httpClient : {};
-// cookie读写
-var $prefs = isQuantumultX ? $prefs : {};
-var $persistentStore = isSurge ? $persistentStore : {};
-// 消息通知
-var $notify = isQuantumultX ? $notify : {};
-var $notification = isSurge ? $notification : {};
-// #endregion 固定头部
-
-// #region 网络请求专用转换
-if (isQuantumultX) {
-    var errorInfo = {
-        error: ''
-    };
-    $httpClient = {
-        get: (url, cb) => {
-            var urlObj;
-            if (typeof (url) == 'string') {
-                urlObj = {
-                    url: url
-                }
-            } else {
-                urlObj = url;
-            }
-            $task.fetch(urlObj).then(response => {
-                cb(undefined, response, response.body)
-            }, reason => {
-                errorInfo.error = reason.error;
-                cb(errorInfo, response, '')
-            })
-        },
-        post: (url, cb) => {
-            var urlObj;
-            if (typeof (url) == 'string') {
-                urlObj = {
-                    url: url
-                }
-            } else {
-                urlObj = url;
-            }
-            url.method = 'POST';
-            $task.fetch(urlObj).then(response => {
-                cb(undefined, response, response.body)
-            }, reason => {
-                errorInfo.error = reason.error;
-                cb(errorInfo, response, '')
-            })
-        }
-    }
-}
-if (isSurge) {
-    $task = {
-        fetch: url => {
-            //为了兼容qx中fetch的写法,所以永不reject
-            return new Promise((resolve, reject) => {
-                if (url.method == 'POST') {
-                    $httpClient.post(url, (error, response, data) => {
-                        if (response) {
-                            response.body = data;
-                            resolve(response, {
-                                error: error
-                            });
-                        } else {
-                            resolve(null, {
-                                error: error
-                            })
-                        }
-                    })
-                } else {
-                    $httpClient.get(url, (error, response, data) => {
-                        if (response) {
-                            response.body = data;
-                            resolve(response, {
-                                error: error
-                            });
-                        } else {
-                            resolve(null, {
-                                error: error
-                            })
-                        }
-                    })
-                }
-            })
-
-        }
-    }
-}
-// #endregion 网络请求专用转换
-
-// #region cookie操作
-if (isQuantumultX) {
-    $persistentStore = {
-        read: key => {
-            return $prefs.valueForKey(key);
-        },
-        write: (val, key) => {
-            return $prefs.setValueForKey(val, key);
-        }
-    }
-}
-if (isSurge) {
-    $prefs = {
-        valueForKey: key => {
-            return $persistentStore.read(key);
-        },
-        setValueForKey: (val, key) => {
-            return $persistentStore.write(val, key);
-        }
-    }
-}
-// #endregion
-
-// #region 消息通知
-if (isQuantumultX) {
-    $notification = {
-        post: (title, subTitle, detail) => {
-            $notify(title, subTitle, detail);
-        }
-    }
-}
-if (isSurge) {
-    $notify = function (title, subTitle, detail) {
-        $notification.post(title, subTitle, detail);
-    }
-}
-// #endregion
-
-
-/*
 可以自由定制显示的天气脚本,想怎样都随你,轻松修改轻松查看
 https://github.com/sazs34/TaskConfig/blob/master/assets/weather_pro.md
  */
@@ -240,7 +99,168 @@ const provider = {
         support: ['$[aqiIcon]', '$[aqi]', '$[aqiDesc]', '$[aqiWarning]']
     }
 }
+// #region 天气数据获取
+function weather() {
+    support();
+    heweatherNow();
+    heweatherDaily();
+    darksky();
+    aqicn();
+    heweatherLifestyle();
+}
+//clear-day, partly-cloudy-day, cloudy, clear-night, rain, snow, sleet, wind, fog, or partly-cloudy-night
+//☀️🌤⛅️🌥☁️🌦🌧⛈🌩🌨❄️💧💦🌫☔️☂️ ☃️⛄️
+function darksky() {
+    if (provider.darksky.progress == 2) return;
+    start("darksky");
+    $task.fetch({
+        url: provider.darksky.api
+    }).then(response => {
+        try {
+            let darkObj = JSON.parse(response.body);
+            record(`天气数据获取-A1-${response.body}`);
+            if (darkObj.error) {
+                $notify("DarkApi", "出错啦", darkObj.error);
+            }
+            provider.darksky.data.daily = darkObj.daily;
+            provider.darksky.data.hourly = darkObj.hourly;
+            provider.darksky.data.currently = darkObj.currently;
+            record(`天气数据获取-A2`);
+            check('darksky', true)
+        } catch (e) {
+            console.log(`天气数据A获取报错${JSON.stringify(e)}`)
+        }
+    }, reason => {
+        record(`天气数据获取-A3-${reason.error}`);
+        check('darksky', false);
+    });
+}
 
+function aqicn() {
+    if (provider.aqicn.progress == 2) return;
+    start("aqicn");
+    $task.fetch({
+        url: provider.aqicn.api
+    }).then(response => {
+        try {
+            var waqiObj = JSON.parse(response.body);
+            if (waqiObj.status == 'error') {
+                $notify("Aqicn", "出错啦", waqiObj.data);
+            } else {
+                record(`天气数据获取-B1-${response.body}`);
+                provider.aqicn.data = {
+                    ...getAqiInfo(waqiObj.data.aqi)
+                };
+            }
+            check('aqicn', true)
+        } catch (e) {
+            console.log(`天气数据B获取报错${JSON.stringify(e)}`)
+        }
+    }, reason => {
+        record(`天气数据获取-B2-${reason.error}`);
+        //获取精确数据失败后，直接获取粗略信息即可
+        heweatherAir();
+    });
+}
+
+function heweatherNow() {
+    start("heweather_now");
+    $task.fetch({
+        url: provider.heweather_now.api
+    }).then(response => {
+        try {
+            record(`天气数据获取-C1-${response.body}`);
+            var heObj = JSON.parse(response.body);
+            provider.heweather_now.data.basic = heObj.HeWeather6[0].basic;
+            provider.heweather_now.data.now = heObj.HeWeather6[0].now;
+            check('heweather_now', true)
+        } catch (e) {
+            console.log(`天气数据C获取报错${JSON.stringify(e)}`)
+        }
+    }, reason => {
+        record(`天气数据获取-C2-${reason.error}`);
+        //因为此接口出错率还挺高的,所以即使报错我们也不处理,该返回什么就返回什么好了
+        check('heweather_now', false)
+    })
+}
+
+function heweatherDaily() {
+    if (provider.heweather_daily.progress == 2) return;
+    start("heweather_daily");
+    $task.fetch({
+        url: provider.heweather_daily.api
+    }).then(response => {
+        try {
+            record(`天气数据获取-D1-${response.body}`);
+            var heObj = JSON.parse(response.body);
+            provider.heweather_daily.data = heObj.HeWeather6[0].daily_forecast[0];
+            check('heweather_daily', true)
+        } catch (e) {
+            console.log(`天气数据D获取报错${JSON.stringify(e)}`)
+        }
+    }, reason => {
+        record(`天气数据获取-D2-${reason.error}`);
+        //因为此接口出错率还挺高的,所以即使报错我们也不处理,该返回什么就返回什么好了
+        check('heweather_daily', false)
+    })
+}
+
+function heweatherAir() {
+    if (provider.heweather_air.progress == 2) return;
+    start("heweather_air");
+    $task.fetch({
+        url: provider.heweather_air.api
+    }).then(response => {
+        try {
+            record(`天气数据获取F1-${response.body}`);
+            var heObj = JSON.parse(response.body);
+            provider.heweather_air.data = {
+                ...getAqiInfo(heObj.HeWeather6[0].air_now_city.aqi)
+            };
+            check('heweather_air', true)
+        } catch (e) {
+            console.log(`天气数据F获取报错${JSON.stringify(e)}`)
+        }
+    }, reason => {
+        record(`天气数据获取-F2-${reason.error}`);
+        //因为此接口出错率还挺高的,所以即使报错我们也不处理,该返回什么就返回什么好了
+        check('heweather_air', false)
+    })
+}
+
+function heweatherLifestyle() {
+    if (provider.heweather_lifestyle.progress == 2) return;
+    start("heweather_lifestyle");
+    var needRequest = false;
+    //判断一下是否全部都是false,全false的话,则不需要请求此接口直接返回渲染的数据了
+    for (var item in config.show.lifestyle) {
+        if (config.show.lifestyle[item]) {
+            needRequest = true;
+            break;
+        }
+    }
+    if (needRequest) {
+        $task.fetch({
+            url: provider.heweather_lifestyle.api
+        }).then(response => {
+            try {
+                record(`天气数据获取-E1-${response.body}`);
+                var heObj = JSON.parse(response.body);
+                provider.heweather_lifestyle.data = heObj.HeWeather6[0].lifestyle;
+                check('heweather_lifestyle', true)
+            } catch (e) {
+                console.log(`天气数据E获取报错${JSON.stringify(e)}`)
+            }
+        }, reason => {
+            record(`天气数据获取-E2-${reason.error}`);
+            //因为此接口出错率还挺高的,所以即使报错我们也不处理,该返回什么就返回什么好了
+            check('heweather_lifestyle', false)
+        })
+    } else {
+        check('heweather_lifestyle', false)
+    }
+}
+//#endregion
 
 // #region 提醒数据组装
 function check(type, result) {
