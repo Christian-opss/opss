@@ -165,9 +165,9 @@ $[lifeStyle($[icon][$[brf]]$[txt])]`
 
         },
         lifestyle: { //此处用于显示各项生活指数，可自行调整顺序，顺序越在前面则显示也会靠前，如果您不想查看某一指数，置为false即可，想看置为true即可
-            drsg: true, //穿衣指数,
-            flu: true, //感冒指数,
-            comf: true, //舒适度指数,
+            drsg: false, //穿衣指数,
+            flu: false, //感冒指数,
+            comf: false, //舒适度指数,
             cw: false, //洗车指数,
             sport: false, //运动指数,
             trav: false, //旅游指数,
