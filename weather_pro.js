@@ -154,7 +154,6 @@ let config = {
     show: {
         //普通每天的
         template: {
-[天气日报]
             title: `$[city]$[district] $[summary]`,
             subtitle: `$[weatherIcon]$[weather] $[temperatureMin] ~ $[temperatureMax]°C ☔️降雨概率 $[precipProbability]％`,
             detail: `🥵空气质量 $[aqi]($[aqiDesc]) 🍃风速$[windSpeed]km/h $[windDir]
